@@ -16,6 +16,14 @@ export const SCREEN_NAMES = {
   ADMIN_HOME: "AdminHome",
   ADMIN_DASHBOARD: "AdminDashboard",
   ADMIN_USERS: "AdminUsers",
+  ADMIN_SETTINGS: "AdminSettings",
+  ADMIN_SERVICES: "AdminServices",
+  
+  // Admin Service screens
+  FLOORS: "Floors",
+  ROOM_TYPES: "RoomTypes",
+  ROOMS: "Rooms",
+  BEDS: "Beds",
 };
 
 export const USER_ROLES = {

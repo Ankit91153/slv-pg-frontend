@@ -37,6 +37,8 @@ axiosInstance.interceptors.request.use(
     if (storeRef) {
       const state = storeRef.getState();
       const token = state.auth?.token;
+      console.log(token,"TOKEN");
+      
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }

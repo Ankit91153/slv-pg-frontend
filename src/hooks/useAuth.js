@@ -12,11 +12,28 @@ export const useLogin = () => {
       // Handle new response structure: response.data contains the actual data
       const data = response.data || response;
       
-      dispatch(setCredentials({
+      console.log("🔐 Login Response:", {
+        hasData: !!data,
+        hasAccessToken: !!data.accessToken,
+        hasToken: !!data.token,
+        hasUser: !!data.user,
+        userRole: data.user?.role,
+      });
+      
+      const credentials = {
         token: data.accessToken || data.token,
         user: data.user,
         role: data.user?.role || data.role,
-      }));
+      };
+      
+      console.log("💾 Storing credentials:", {
+        hasToken: !!credentials.token,
+        token: credentials.token ? `${credentials.token.substring(0, 20)}...` : null,
+        userName: credentials.user?.name,
+        userRole: credentials.role,
+      });
+      
+      dispatch(setCredentials(credentials));
     },
   });
 };
