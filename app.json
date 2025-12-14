@@ -1,6 +1,6 @@
 {
   "expo": {
-     "name": "PG Connect",
+    "name": "PG Connect",
     "slug": "pg-connect",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -26,6 +26,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3c1b02b4-1697-4af9-a856-43108c9848e8"
+      }
+    },
+    "owner": "ankitpandey1609",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3c1b02b4-1697-4af9-a856-43108c9848e8"
     }
   }
 }
