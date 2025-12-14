@@ -2,6 +2,7 @@ import axios from "axios";
 import { Alert } from "react-native";
 
 const API_BASE_URL = "https://slv-pg-backend.onrender.com/api/v1"; // Change to your API URL
+// const API_BASE_URL = "http://192.168.1.12:3000/api/v1";
 
 // Navigation reference for redirects
 let navigationRef = null;
