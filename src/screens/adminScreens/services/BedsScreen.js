@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
+import { useTheme } from "../../../context/ThemeContext";
 import {
   useBeds,
   useCreateBed,
@@ -26,6 +27,7 @@ import { useRoomTypes } from "../../../hooks/useRoomTypes";
 import { bedSchema } from "../../../validations/bedSchema";
 
 export default function BedsScreen() {
+  const { theme } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBed, setEditingBed] = useState(null);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -134,51 +136,51 @@ export default function BedsScreen() {
   };
 
   const renderBedCard = ({ item }) => (
-    <View style={styles.bedCard}>
+    <View style={[styles.bedCard, { backgroundColor: theme.colors.card, shadowColor: theme.colors.shadow }]}>
       <View style={styles.bedInfo}>
         <View
           style={[
             styles.bedIconContainer,
-            { backgroundColor: item.isOccupied ? "#FF3B3020" : "#5856D620" },
+            { backgroundColor: item.isOccupied ? theme.colors.error + "20" : theme.colors.info + "20" },
           ]}
         >
           <Ionicons
             name={item.isOccupied ? "bed" : "bed-outline"}
             size={24}
-            color={item.isOccupied ? "#FF3B30" : "#5856D6"}
+            color={item.isOccupied ? theme.colors.error : theme.colors.info}
           />
         </View>
         <View style={styles.bedDetails}>
-          <Text style={styles.bedNumber}>Bed {item.bedNumber}</Text>
-          <Text style={styles.bedMeta}>
+          <Text style={[styles.bedNumber, { color: theme.colors.text }]}>Bed {item.bedNumber}</Text>
+          <Text style={[styles.bedMeta, { color: theme.colors.textSecondary }]}>
             Room {item.roomNumber} • Floor {item.floorNumber}
           </Text>
-          <Text style={styles.roomTypeText}>{item.roomType}</Text>
+          <Text style={[styles.roomTypeText, { color: theme.colors.textSecondary }]}>{item.roomType}</Text>
           <View style={styles.statusContainer}>
             <View
               style={[
                 styles.statusBadge,
                 {
-                  backgroundColor: item.isOccupied ? "#FF3B3020" : "#34C75920",
+                  backgroundColor: item.isOccupied ? theme.colors.error + "20" : theme.colors.success + "20",
                 },
               ]}
             >
               <Text
                 style={[
                   styles.statusText,
-                  { color: item.isOccupied ? "#FF3B30" : "#34C759" },
+                  { color: item.isOccupied ? theme.colors.error : theme.colors.success },
                 ]}
               >
                 {item.isOccupied ? "Occupied" : "Available"}
               </Text>
             </View>
-            <Text style={styles.priceText}>₹{item.price}</Text>
+            <Text style={[styles.priceText, { color: theme.colors.textSecondary }]}>₹{item.price}</Text>
           </View>
         </View>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
           onPress={() => toggleOccupied(item)}
         >
           <Ionicons
@@ -186,20 +188,20 @@ export default function BedsScreen() {
               item.isOccupied ? "checkmark-circle" : "checkmark-circle-outline"
             }
             size={20}
-            color={item.isOccupied ? "#FF3B30" : "#34C759"}
+            color={item.isOccupied ? theme.colors.error : theme.colors.success}
           />
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
           onPress={() => handleEdit(item)}
         >
-          <Ionicons name="create-outline" size={20} color="#007AFF" />
+          <Ionicons name="create-outline" size={20} color={theme.colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
           onPress={() => handleDelete(item)}
         >
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+          <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -207,48 +209,51 @@ export default function BedsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Beds</Text>
+        {/* Title handled by nav */}
+        {/* <Text style={[styles.title, { color: theme.colors.text }]}>Beds</Text> */}
+        <View />
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[
               styles.filterButton,
-              Object.keys(filters).length > 0 && styles.filterButtonActive,
+              { backgroundColor: theme.colors.card, borderColor: theme.colors.primary },
+              Object.keys(filters).length > 0 && { backgroundColor: theme.colors.primary },
             ]}
             onPress={() => setFilterModalVisible(true)}
           >
             <Ionicons
               name="filter"
               size={20}
-              color={Object.keys(filters).length > 0 ? "white" : "#007AFF"}
+              color={Object.keys(filters).length > 0 ? theme.colors.textInverse : theme.colors.primary}
             />
             {Object.keys(filters).length > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>
+              <View style={[styles.filterBadge, { backgroundColor: theme.colors.error }]}>
+                <Text style={[styles.filterBadgeText, { color: theme.colors.textInverse }]}>
                   {Object.keys(filters).length}
                 </Text>
               </View>
             )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
-            <Ionicons name="add" size={24} color="white" />
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.primary }]} onPress={handleAddNew}>
+            <Ionicons name="add" size={24} color={theme.colors.textInverse} />
           </TouchableOpacity>
         </View>
       </View>
 
       {beds?.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="business-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No beds yet</Text>
-          <Text style={styles.emptySubtext}>Tap + to add your first bed</Text>
+          <Ionicons name="business-outline" size={64} color={theme.colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>No beds yet</Text>
+          <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>Tap + to add your first bed</Text>
         </View>
       ) : (
         <FlatList
@@ -271,9 +276,9 @@ export default function BedsScreen() {
         }}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
                 {editingBed ? "Edit Bed" : "Add New Bed"}
               </Text>
               <TouchableOpacity
@@ -282,7 +287,7 @@ export default function BedsScreen() {
                   setEditingBed(null);
                 }}
               >
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -309,20 +314,20 @@ export default function BedsScreen() {
                 <ScrollView style={styles.form}>
                   {!editingBed && (
                     <>
-                      <Text style={styles.label}>
+                      <Text style={[styles.label, { color: theme.colors.text }]}>
                         Select Room (Only rooms with available capacity) *
                       </Text>
                       {availableRooms.length === 0 ? (
-                        <View style={styles.noRoomsContainer}>
+                        <View style={[styles.noRoomsContainer, { backgroundColor: theme.colors.warning + "10", borderColor: theme.colors.warning }]}>
                           <Ionicons
                             name="alert-circle-outline"
                             size={32}
-                            color="#FF9500"
+                            color={theme.colors.warning}
                           />
-                          <Text style={styles.noRoomsText}>
+                          <Text style={[styles.noRoomsText, { color: theme.colors.warning }]}>
                             No rooms with available bed capacity
                           </Text>
-                          <Text style={styles.noRoomsSubtext}>
+                          <Text style={[styles.noRoomsSubtext, { color: theme.colors.textSecondary }]}>
                             All rooms are at full capacity
                           </Text>
                         </View>
@@ -333,8 +338,12 @@ export default function BedsScreen() {
                               key={room.id}
                               style={[
                                 styles.dropdownOption,
-                                values.roomId === room.id &&
-                                  styles.dropdownOptionSelected,
+                                { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                                values.roomId === room.id && {
+                                  borderColor: theme.colors.success,
+                                  backgroundColor: theme.colors.success + '10',
+                                  borderWidth: 2,
+                                },
                               ]}
                               onPress={() => setFieldValue("roomId", room.id)}
                             >
@@ -342,29 +351,32 @@ export default function BedsScreen() {
                                 name="bed"
                                 size={20}
                                 color={
-                                  values.roomId === room.id ? "#34C759" : "#999"
+                                  values.roomId === room.id ? theme.colors.success : theme.colors.textSecondary
                                 }
                               />
                               <View style={{ flex: 1 }}>
                                 <Text
                                   style={[
                                     styles.dropdownOptionText,
-                                    values.roomId === room.id &&
-                                      styles.dropdownOptionTextSelected,
+                                    { color: theme.colors.textSecondary },
+                                    values.roomId === room.id && {
+                                      color: theme.colors.success,
+                                      fontWeight: '600',
+                                    },
                                   ]}
                                 >
                                   Room {room.roomNumber}
                                 </Text>
-                                <Text style={styles.dropdownSubtext}>
+                                <Text style={[styles.dropdownSubtext, { color: theme.colors.textSecondary }]}>
                                   Floor {room.floorNumber} • {room.roomTypeName}
                                 </Text>
-                                <View style={styles.capacityBadge}>
+                                <View style={[styles.capacityBadge, { backgroundColor: theme.colors.success + "15" }]}>
                                   <Ionicons
                                     name="add-circle"
                                     size={14}
-                                    color="#34C759"
+                                    color={theme.colors.success}
                                   />
-                                  <Text style={styles.capacityText}>
+                                  <Text style={[styles.capacityText, { color: theme.colors.success }]}>
                                     {room.availableBeds}{" "}
                                     {room.availableBeds === 1 ? "bed" : "beds"}{" "}
                                     available ({room.currentBeds}/
@@ -376,7 +388,7 @@ export default function BedsScreen() {
                                 <Ionicons
                                   name="checkmark-circle"
                                   size={20}
-                                  color="#34C759"
+                                  color={theme.colors.success}
                                 />
                               )}
                             </TouchableOpacity>
@@ -384,50 +396,56 @@ export default function BedsScreen() {
                         </View>
                       )}
                       {touched.roomId && errors.roomId && (
-                        <Text style={styles.errorText}>{errors.roomId}</Text>
+                        <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.roomId}</Text>
                       )}
 
-                      <Text style={[styles.label, { marginTop: 20 }]}>
+                      <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>
                         Bed Number *
                       </Text>
                       <TextInput
                         style={[
                           styles.input,
+                          {
+                            backgroundColor: theme.colors.background,
+                            borderColor: theme.colors.border,
+                            color: theme.colors.text
+                          },
                           touched.bedNumber &&
-                            errors.bedNumber &&
-                            styles.inputError,
+                          errors.bedNumber &&
+                          { borderColor: theme.colors.error },
                         ]}
                         placeholder="Enter bed number"
+                        placeholderTextColor={theme.colors.textSecondary}
                         value={values.bedNumber}
                         onChangeText={handleChange("bedNumber")}
                         onBlur={handleBlur("bedNumber")}
                         keyboardType="number-pad"
                       />
                       {touched.bedNumber && errors.bedNumber && (
-                        <Text style={styles.errorText}>{errors.bedNumber}</Text>
+                        <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.bedNumber}</Text>
                       )}
                     </>
                   )}
 
                   {editingBed && (
                     <>
-                      <View style={styles.infoCard}>
-                        <Text style={styles.infoLabel}>Room:</Text>
-                        <Text style={styles.infoValue}>
+                      <View style={[styles.infoCard, { backgroundColor: theme.colors.background }]}>
+                        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Room:</Text>
+                        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
                           Room {editingBed.room?.roomNumber}
                         </Text>
                       </View>
-                      <View style={styles.infoCard}>
-                        <Text style={styles.infoLabel}>Bed Number:</Text>
-                        <Text style={styles.infoValue}>
+                      <View style={[styles.infoCard, { backgroundColor: theme.colors.background }]}>
+                        <Text style={[styles.infoLabel, { color: theme.colors.textSecondary }]}>Bed Number:</Text>
+                        <Text style={[styles.infoValue, { color: theme.colors.text }]}>
                           Bed {editingBed.bedNumber}
                         </Text>
                       </View>
 
-                      <View style={styles.switchContainer}>
+                      <View style={[styles.switchContainer, { backgroundColor: theme.colors.background }]}>
                         <View>
-                          <Text style={styles.label}>Occupied Status</Text>
-                          <Text style={styles.switchSubtext}>
+                          <Text style={[styles.label, { marginBottom: 0, color: theme.colors.text }]}>Occupied Status</Text>
+                          <Text style={[styles.switchSubtext, { color: theme.colors.textSecondary }]}>
                             {values.isOccupied
                               ? "Bed is occupied"
                               : "Bed is available"}
@@ -438,8 +456,8 @@ export default function BedsScreen() {
                           onValueChange={(value) =>
                             setFieldValue("isOccupied", value)
                           }
-                          trackColor={{ false: "#E5E5E5", true: "#34C759" }}
-                          thumbColor={values.isOccupied ? "#fff" : "#f4f3f4"}
+                          trackColor={{ false: theme.colors.border, true: theme.colors.success }}
+                          thumbColor={theme.colors.card}
                         />
                       </View>
                     </>
@@ -448,8 +466,9 @@ export default function BedsScreen() {
                   <TouchableOpacity
                     style={[
                       styles.submitButton,
+                      { backgroundColor: theme.colors.primary },
                       ((!isValid && !editingBed) || isCreating || isUpdating) &&
-                        styles.submitButtonDisabled,
+                      styles.submitButtonDisabled,
                     ]}
                     onPress={handleSubmit}
                     disabled={
@@ -457,9 +476,9 @@ export default function BedsScreen() {
                     }
                   >
                     {isCreating || isUpdating ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color={theme.colors.textInverse} />
                     ) : (
-                      <Text style={styles.submitButtonText}>
+                      <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>
                         {editingBed ? "Update Bed" : "Create Bed"}
                       </Text>
                     )}
@@ -479,33 +498,46 @@ export default function BedsScreen() {
         onRequestClose={() => setFilterModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter Beds</Text>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Filter Beds</Text>
               <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.form}>
-              <Text style={styles.label}>Floor Number</Text>
+              <Text style={[styles.label, { color: theme.colors.text }]}>Floor Number</Text>
               <View style={styles.dropdownContainer}>
                 <TouchableOpacity
                   style={[
                     styles.dropdownOption,
-                    !filters.floorNumber && styles.dropdownOptionSelected,
+                    { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                    !filters.floorNumber && {
+                      borderColor: theme.colors.primary,
+                      backgroundColor: theme.colors.primary + '10',
+                      borderWidth: 2,
+                    },
                   ]}
                   onPress={() => applyFilters(null, filters.roomType)}
                 >
-                  <Text style={styles.dropdownOptionText}>All Floors</Text>
+                  <Text style={[
+                    styles.dropdownOptionText,
+                    { color: theme.colors.textSecondary },
+                    !filters.floorNumber && { color: theme.colors.primary, fontWeight: '600' }
+                  ]}>All Floors</Text>
                 </TouchableOpacity>
                 {floors?.map((floor) => (
                   <TouchableOpacity
                     key={floor.id}
                     style={[
                       styles.dropdownOption,
-                      filters.floorNumber === floor.floorNumber.toString() &&
-                        styles.dropdownOptionSelected,
+                      { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                      filters.floorNumber === floor.floorNumber.toString() && {
+                        borderColor: theme.colors.primary,
+                        backgroundColor: theme.colors.primary + '10',
+                        borderWidth: 2,
+                      },
                     ]}
                     onPress={() =>
                       applyFilters(
@@ -514,39 +546,60 @@ export default function BedsScreen() {
                       )
                     }
                   >
-                    <Ionicons name="layers" size={20} color="#007AFF" />
-                    <Text style={styles.dropdownOptionText}>
+                    <Ionicons name="layers" size={20} color={filters.floorNumber === floor.floorNumber.toString() ? theme.colors.primary : theme.colors.textSecondary} />
+                    <Text style={[
+                      styles.dropdownOptionText,
+                      { color: theme.colors.textSecondary },
+                      filters.floorNumber === floor.floorNumber.toString() && { color: theme.colors.primary, fontWeight: '600' }
+                    ]}>
                       Floor {floor.floorNumber}
                     </Text>
                   </TouchableOpacity>
                 ))}
               </View>
 
-              <Text style={[styles.label, { marginTop: 20 }]}>Room Type</Text>
+              <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>Room Type</Text>
               <View style={styles.dropdownContainer}>
                 <TouchableOpacity
                   style={[
                     styles.dropdownOption,
-                    !filters.roomType && styles.dropdownOptionSelected,
+                    { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                    !filters.roomType && {
+                      borderColor: theme.colors.primary,
+                      backgroundColor: theme.colors.primary + '10',
+                      borderWidth: 2,
+                    },
                   ]}
                   onPress={() => applyFilters(filters.floorNumber, null)}
                 >
-                  <Text style={styles.dropdownOptionText}>All Room Types</Text>
+                  <Text style={[
+                    styles.dropdownOptionText,
+                    { color: theme.colors.textSecondary },
+                    !filters.roomType && { color: theme.colors.primary, fontWeight: '600' }
+                  ]}>All Room Types</Text>
                 </TouchableOpacity>
                 {roomTypesResponse?.map((roomType) => (
                   <TouchableOpacity
                     key={roomType.id}
                     style={[
                       styles.dropdownOption,
-                      filters.roomType === roomType.name &&
-                        styles.dropdownOptionSelected,
+                      { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                      filters.roomType === roomType.name && {
+                        borderColor: theme.colors.success,
+                        backgroundColor: theme.colors.success + '10',
+                        borderWidth: 2,
+                      },
                     ]}
                     onPress={() =>
                       applyFilters(filters.floorNumber, roomType.name)
                     }
                   >
-                    <Ionicons name="grid" size={20} color="#34C759" />
-                    <Text style={styles.dropdownOptionText}>
+                    <Ionicons name="grid" size={20} color={filters.roomType === roomType.name ? theme.colors.success : theme.colors.textSecondary} />
+                    <Text style={[
+                      styles.dropdownOptionText,
+                      { color: theme.colors.textSecondary },
+                      filters.roomType === roomType.name && { color: theme.colors.success, fontWeight: '600' }
+                    ]}>
                       {roomType.name}
                     </Text>
                   </TouchableOpacity>
@@ -554,10 +607,10 @@ export default function BedsScreen() {
               </View>
 
               <TouchableOpacity
-                style={styles.clearButton}
+                style={[styles.clearButton, { backgroundColor: theme.colors.error }]}
                 onPress={clearFilters}
               >
-                <Text style={styles.clearButtonText}>Clear All Filters</Text>
+                <Text style={[styles.clearButtonText, { color: theme.colors.textInverse }]}>Clear All Filters</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -568,7 +621,7 @@ export default function BedsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
@@ -577,26 +630,23 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
   },
-  title: { fontSize: 28, fontWeight: "bold" },
+  // title: { fontSize: 28, fontWeight: "bold" },
   headerActions: { flexDirection: "row", gap: 10 },
   filterButton: {
-    backgroundColor: "white",
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#007AFF",
   },
-  filterButtonActive: {
-    backgroundColor: "#007AFF",
-  },
+  // filterButtonActive: {
+  //   backgroundColor: "#007AFF",
+  // },
   filterBadge: {
     position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: "#FF3B30",
     width: 18,
     height: 18,
     borderRadius: 9,
@@ -604,18 +654,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   filterBadgeText: {
-    color: "white",
     fontSize: 10,
     fontWeight: "bold",
   },
   addButton: {
-    backgroundColor: "#007AFF",
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -626,11 +673,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "white",
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -649,11 +694,10 @@ const styles = StyleSheet.create({
   bedNumber: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 4,
   },
-  bedMeta: { fontSize: 14, color: "#666", marginBottom: 4 },
-  roomTypeText: { fontSize: 12, color: "#999", marginBottom: 6 },
+  bedMeta: { fontSize: 14, marginBottom: 4 },
+  roomTypeText: { fontSize: 12, marginBottom: 6 },
   statusContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   statusBadge: {
     paddingHorizontal: 8,
@@ -661,13 +705,12 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   statusText: { fontSize: 12, fontWeight: "600" },
-  priceText: { fontSize: 12, color: "#999", fontWeight: "600" },
+  priceText: { fontSize: 12, fontWeight: "600" },
   actions: { flexDirection: "row", gap: 8 },
   actionButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F5F5F5",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -677,15 +720,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 100,
   },
-  emptyText: { fontSize: 20, fontWeight: "600", color: "#999", marginTop: 16 },
-  emptySubtext: { fontSize: 14, color: "#BBB", marginTop: 8 },
+  emptyText: { fontSize: 20, fontWeight: "600", marginTop: 16 },
+  emptySubtext: { fontSize: 14, marginTop: 8 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -697,9 +739,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  modalTitle: { fontSize: 22, fontWeight: "bold", color: "#333" },
+  modalTitle: { fontSize: 22, fontWeight: "bold" },
   form: { marginTop: 10 },
-  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 12 },
+  label: { fontSize: 16, fontWeight: "600", marginBottom: 12 },
   dropdownContainer: { gap: 8 },
   dropdownOption: {
     flexDirection: "row",
@@ -707,26 +749,19 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
-    backgroundColor: "#F9F9F9",
     gap: 12,
   },
   dropdownOptionSelected: {
-    backgroundColor: "#FFF8F0",
-    borderColor: "#FF9500",
     borderWidth: 2,
   },
   dropdownOptionText: {
     fontSize: 16,
-    color: "#666",
   },
   dropdownOptionTextSelected: {
-    color: "#34C759",
     fontWeight: "600",
   },
   dropdownSubtext: {
     fontSize: 12,
-    color: "#999",
     marginTop: 2,
   },
   capacityBadge: {
@@ -734,7 +769,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     marginTop: 6,
-    backgroundColor: "#34C75915",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -742,75 +776,64 @@ const styles = StyleSheet.create({
   },
   capacityText: {
     fontSize: 11,
-    color: "#34C759",
     fontWeight: "600",
   },
   noRoomsContainer: {
-    backgroundColor: "#FFF8F0",
     padding: 20,
     borderRadius: 12,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#FF9500",
   },
   noRoomsText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FF9500",
     marginTop: 12,
   },
   noRoomsSubtext: {
     fontSize: 14,
-    color: "#999",
     marginTop: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#DDD",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#F9F9F9",
   },
-  inputError: { borderColor: "#FF3B30" },
-  errorText: { color: "#FF3B30", fontSize: 12, marginTop: 4 },
+  inputError: { borderWidth: 1 },
+  errorText: { fontSize: 12, marginTop: 4 },
   infoCard: {
-    backgroundColor: "#F9F9F9",
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  infoLabel: { fontSize: 14, color: "#666" },
-  infoValue: { fontSize: 14, fontWeight: "600", color: "#333" },
+  infoLabel: { fontSize: 14 },
+  infoValue: { fontSize: 14, fontWeight: "600" },
   switchContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#F9F9F9",
     padding: 16,
     borderRadius: 8,
     marginTop: 10,
   },
-  switchSubtext: { fontSize: 12, color: "#999", marginTop: 4 },
+  switchSubtext: { fontSize: 12, marginTop: 4 },
   submitButton: {
-    backgroundColor: "#007AFF",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 20,
     marginBottom: 20,
   },
-  submitButtonDisabled: { backgroundColor: "#A0A0A0", opacity: 0.6 },
-  submitButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { fontSize: 16, fontWeight: "600" },
   clearButton: {
-    backgroundColor: "#FF3B30",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 20,
     marginBottom: 20,
   },
-  clearButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+  clearButtonText: { fontSize: 16, fontWeight: "600" },
 });

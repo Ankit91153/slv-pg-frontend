@@ -12,10 +12,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Formik } from 'formik';
+import { useTheme } from '../../../context/ThemeContext';
 import { useFloors, useCreateFloor, useUpdateFloor, useDeleteFloor } from '../../../hooks/useFloors';
 import { floorSchema } from '../../../validations/floorSchema';
 
 export default function FloorsScreen() {
+  const { theme } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingFloor, setEditingFloor] = useState(null);
 
@@ -24,32 +26,31 @@ export default function FloorsScreen() {
   const { mutate: updateFloor, isPending: isUpdating } = useUpdateFloor();
   const { mutate: deleteFloor, isPending: isDeleting } = useDeleteFloor();
 
- const handleSubmit = (values, { resetForm }) => {
-  const payload = {
-    floorNumber: Number(values.floorNumber),
-  };
+  const handleSubmit = (values, { resetForm }) => {
+    const payload = {
+      floorNumber: Number(values.floorNumber),
+    };
 
-  if (editingFloor) {
-    updateFloor(
-      { id: editingFloor.id, data: payload },
-      {
+    if (editingFloor) {
+      updateFloor(
+        { id: editingFloor.id, data: payload },
+        {
+          onSuccess: () => {
+            setModalVisible(false);
+            setEditingFloor(null);
+            resetForm();
+          },
+        }
+      );
+    } else {
+      createFloor(payload, {
         onSuccess: () => {
           setModalVisible(false);
-          setEditingFloor(null);
           resetForm();
         },
-      }
-    );
-  } else {
-    createFloor(payload, {
-      onSuccess: () => {
-        setModalVisible(false);
-        resetForm();
-      },
-    });
-  }
-};
- 
+      });
+    }
+  };
 
   const handleEdit = (floor) => {
     setEditingFloor(floor);
@@ -80,29 +81,28 @@ export default function FloorsScreen() {
     setModalVisible(true);
   };
 
-  
   const renderFloorCard = ({ item }) => (
-    <View style={styles.floorCard}>
+    <View style={[styles.floorCard, { backgroundColor: theme.colors.card, shadowColor: theme.colors.shadow }]}>
       <View style={styles.floorInfo}>
-        <View style={styles.floorIconContainer}>
-          <Ionicons name="layers" size={24} color="#007AFF" />
+        <View style={[styles.floorIconContainer, { backgroundColor: theme.colors.primary + '20' }]}>
+          <Ionicons name="layers" size={24} color={theme.colors.primary} />
         </View>
         <View style={styles.floorDetails}>
-          <Text style={styles.floorNumber}>Floor {item.floorNumber}</Text>
+          <Text style={[styles.floorNumber, { color: theme.colors.text }]}>Floor {item.floorNumber}</Text>
         </View>
       </View>
       <View style={styles.actions}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
           onPress={() => handleEdit(item)}
         >
-          <Ionicons name="create-outline" size={20} color="#007AFF" />
+          <Ionicons name="create-outline" size={20} color={theme.colors.primary} />
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
           onPress={() => handleDelete(item)}
         >
-          <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+          <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -110,26 +110,28 @@ export default function FloorsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Floors</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
-          <Ionicons name="add" size={24} color="white" />
+        {/* Title is usually handled by navigation header, but keeping here if needed or custom */}
+        {/* <Text style={[styles.title, { color: theme.colors.text }]}>Floors</Text> */}
+        <View />
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.primary }]} onPress={handleAddNew}>
+          <Ionicons name="add" size={24} color={theme.colors.textInverse} />
         </TouchableOpacity>
       </View>
 
       {floors?.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="layers-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No floors yet</Text>
-          <Text style={styles.emptySubtext}>Tap + to add your first floor</Text>
+          <Ionicons name="layers-outline" size={64} color={theme.colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>No floors yet</Text>
+          <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>Tap + to add your first floor</Text>
         </View>
       ) : (
         <FlatList
@@ -152,9 +154,9 @@ export default function FloorsScreen() {
         }}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
                 {editingFloor ? 'Edit Floor' : 'Add New Floor'}
               </Text>
               <TouchableOpacity
@@ -163,7 +165,7 @@ export default function FloorsScreen() {
                   setEditingFloor(null);
                 }}
               >
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -185,34 +187,41 @@ export default function FloorsScreen() {
                 isValid,
               }) => (
                 <View style={styles.form}>
-                  <Text style={styles.label}>Floor Number</Text>
+                  <Text style={[styles.label, { color: theme.colors.text }]}>Floor Number</Text>
                   <TextInput
                     style={[
                       styles.input,
-                      touched.floorNumber && errors.floorNumber && styles.inputError,
+                      {
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.border,
+                        color: theme.colors.text
+                      },
+                      touched.floorNumber && errors.floorNumber && { borderColor: theme.colors.error },
                     ]}
                     placeholder="Enter floor number"
+                    placeholderTextColor={theme.colors.textSecondary}
                     value={values.floorNumber.toString()}
                     onChangeText={handleChange('floorNumber')}
                     onBlur={handleBlur('floorNumber')}
                     keyboardType="number-pad"
                   />
                   {touched.floorNumber && errors.floorNumber && (
-                    <Text style={styles.errorText}>{errors.floorNumber}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.floorNumber}</Text>
                   )}
 
                   <TouchableOpacity
                     style={[
                       styles.submitButton,
+                      { backgroundColor: theme.colors.primary },
                       (!isValid || isCreating || isUpdating) && styles.submitButtonDisabled,
                     ]}
                     onPress={handleSubmit}
                     disabled={!isValid || isCreating || isUpdating}
                   >
                     {isCreating || isUpdating ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color={theme.colors.textInverse} />
                     ) : (
-                      <Text style={styles.submitButtonText}>
+                      <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>
                         {editingFloor ? 'Update Floor' : 'Create Floor'}
                       </Text>
                     )}
@@ -228,7 +237,7 @@ export default function FloorsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
+  container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
@@ -237,15 +246,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
   },
-  title: { fontSize: 28, fontWeight: 'bold' },
+  // title: { fontSize: 28, fontWeight: 'bold' }, // Handled by nav
   addButton: {
-    backgroundColor: '#007AFF',
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -256,11 +263,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'white',
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -271,20 +276,18 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF20',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   floorDetails: { flex: 1 },
-  floorNumber: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 4 },
-  floorMeta: { fontSize: 14, color: '#666' },
+  floorNumber: { fontSize: 18, fontWeight: '600', marginBottom: 4 },
+  floorMeta: { fontSize: 14 },
   actions: { flexDirection: 'row', gap: 8 },
   actionButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -294,15 +297,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 100,
   },
-  emptyText: { fontSize: 20, fontWeight: '600', color: '#999', marginTop: 16 },
-  emptySubtext: { fontSize: 14, color: '#BBB', marginTop: 8 },
+  emptyText: { fontSize: 20, fontWeight: '600', marginTop: 16 },
+  emptySubtext: { fontSize: 14, marginTop: 8 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -314,26 +316,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
+  modalTitle: { fontSize: 22, fontWeight: 'bold' },
   form: { marginTop: 10 },
-  label: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8 },
+  label: { fontSize: 16, fontWeight: '600', marginBottom: 8 },
   input: {
     borderWidth: 1,
-    borderColor: '#DDD',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#F9F9F9',
   },
-  inputError: { borderColor: '#FF3B30' },
-  errorText: { color: '#FF3B30', fontSize: 12, marginTop: 4 },
+  inputError: { borderWidth: 1 },
+  errorText: { fontSize: 12, marginTop: 4 },
   submitButton: {
-    backgroundColor: '#007AFF',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
   },
-  submitButtonDisabled: { backgroundColor: '#A0A0A0', opacity: 0.6 },
-  submitButtonText: { color: 'white', fontSize: 16, fontWeight: '600' },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { fontSize: 16, fontWeight: '600' },
 });

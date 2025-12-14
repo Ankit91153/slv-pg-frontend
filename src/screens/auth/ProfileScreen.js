@@ -1,22 +1,59 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+import { useTheme } from '../../context/ThemeContext';
+import ThemeToggle from '../../components/ThemeToggle';
+import { createProfileStyles } from '../../styles/screens/profileStyles';
 
 export default function ProfileScreen({ onLogout, userRole }) {
+  const { theme } = useTheme();
+  const styles = createProfileStyles(theme);
+  const user = useSelector((state) => state.auth.user);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.role}>Role: {userRole}</Text>
-      <TouchableOpacity style={styles.button} onPress={onLogout}>
-        <Text style={styles.buttonText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Profile</Text>
+          <Text style={styles.subtitle}>Manage your account settings</Text>
+        </View>
+
+        {/* Theme Toggle Section */}
+        <View style={styles.themeToggleContainer}>
+          <Text style={styles.themeToggleLabel}>Appearance</Text>
+          <ThemeToggle />
+        </View>
+
+        {/* User Info */}
+        {user?.email && (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoLabel}>Email</Text>
+            <Text style={styles.infoValue}>{user.email}</Text>
+          </View>
+        )}
+
+        {user?.name && (
+          <View style={styles.infoCard}>
+            <Text style={styles.infoLabel}>Name</Text>
+            <Text style={styles.infoValue}>{user.name}</Text>
+          </View>
+        )}
+
+        <View style={styles.infoCard}>
+          <Text style={styles.infoLabel}>Role</Text>
+          <Text style={styles.infoValue}>{userRole}</Text>
+        </View>
+
+        {/* Logout Button */}
+        <TouchableOpacity
+          style={styles.logoutButton}
+          onPress={onLogout}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  role: { fontSize: 18, marginBottom: 30, textAlign: 'center' },
-  button: { backgroundColor: '#FF3B30', padding: 15, borderRadius: 8 },
-  buttonText: { color: 'white', textAlign: 'center', fontWeight: 'bold' },
-});

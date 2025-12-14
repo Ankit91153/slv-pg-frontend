@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
+import { useTheme } from "../../../context/ThemeContext";
 import {
   useRoomTypes,
   useCreateRoomType,
@@ -22,6 +23,7 @@ import {
 import { roomTypeSchema } from "../../../validations/roomTypeSchema";
 
 export default function RoomTypesScreen() {
+  const { theme } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRoomType, setEditingRoomType] = useState(null);
 
@@ -91,19 +93,17 @@ export default function RoomTypesScreen() {
   };
 
   const getIconForBedCount = (bedsCount) => {
-    if (bedsCount === 1) return { icon: 'person', color: '#007AFF' };
-    if (bedsCount === 2) return { icon: 'people', color: '#34C759' };
-    if (bedsCount === 3) return { icon: 'people-circle', color: '#FF9500' };
-    return { icon: 'bed', color: '#5856D6' };
+    if (bedsCount === 1) return { icon: 'person', color: theme.colors.primary };
+    if (bedsCount === 2) return { icon: 'people', color: theme.colors.success };
+    if (bedsCount === 3) return { icon: 'people-circle', color: theme.colors.warning };
+    return { icon: 'bed', color: theme.colors.info };
   };
 
-  console.log(roomTypesResponse,"roomTypesResponseroomTypesResponse");
-  
   const renderRoomTypeCard = ({ item }) => {
     const config = getIconForBedCount(item.bedsCount);
 
     return (
-      <View style={styles.roomTypeCard}>
+      <View style={[styles.roomTypeCard, { backgroundColor: theme.colors.card, shadowColor: theme.colors.shadow }]}>
         <View style={styles.roomTypeInfo}>
           <View
             style={[
@@ -114,8 +114,8 @@ export default function RoomTypesScreen() {
             <Ionicons name={config.icon} size={28} color={config.color} />
           </View>
           <View style={styles.roomTypeDetails}>
-            <Text style={styles.roomTypeName}>{item.name}</Text>
-            <Text style={styles.roomTypeMeta}>
+            <Text style={[styles.roomTypeName, { color: theme.colors.text }]}>{item.name}</Text>
+            <Text style={[styles.roomTypeMeta, { color: theme.colors.textSecondary }]}>
               {item.bedsCount} {item.bedsCount === 1 ? "Bed" : "Beds"} • ₹
               {item.pricePerBed}/bed
             </Text>
@@ -123,16 +123,16 @@ export default function RoomTypesScreen() {
         </View>
         <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
             onPress={() => handleEdit(item)}
           >
-            <Ionicons name="create-outline" size={20} color="#007AFF" />
+            <Ionicons name="create-outline" size={20} color={theme.colors.primary} />
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
             onPress={() => handleDelete(item)}
           >
-            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+            <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -141,26 +141,28 @@ export default function RoomTypesScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Room Types</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
-          <Ionicons name="add" size={24} color="white" />
+        {/* Title handled by nav */}
+        {/* <Text style={[styles.title, { color: theme.colors.text }]}>Room Types</Text> */}
+        <View />
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.primary }]} onPress={handleAddNew}>
+          <Ionicons name="add" size={24} color={theme.colors.textInverse} />
         </TouchableOpacity>
       </View>
 
       {roomTypesResponse?.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="grid-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No room types yet</Text>
-          <Text style={styles.emptySubtext}>
+          <Ionicons name="grid-outline" size={64} color={theme.colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>No room types yet</Text>
+          <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
             Tap + to add your first room type
           </Text>
         </View>
@@ -185,9 +187,9 @@ export default function RoomTypesScreen() {
         }}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
                 {editingRoomType ? "Edit Room Type" : "Add New Room Type"}
               </Text>
               <TouchableOpacity
@@ -196,7 +198,7 @@ export default function RoomTypesScreen() {
                   setEditingRoomType(null);
                 }}
               >
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -220,74 +222,93 @@ export default function RoomTypesScreen() {
                 isValid,
               }) => (
                 <ScrollView style={styles.form}>
-                  <Text style={styles.label}>Room Type Name *</Text>
+                  <Text style={[styles.label, { color: theme.colors.text }]}>Room Type Name *</Text>
                   <TextInput
                     style={[
                       styles.input,
-                      touched.name && errors.name && styles.inputError,
+                      {
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.border,
+                        color: theme.colors.text
+                      },
+                      touched.name && errors.name && { borderColor: theme.colors.error },
                     ]}
                     placeholder="Enter room type name (e.g., Single, Deluxe, Suite)"
+                    placeholderTextColor={theme.colors.textSecondary}
                     value={values.name}
                     onChangeText={handleChange("name")}
                     onBlur={handleBlur("name")}
                   />
                   {touched.name && errors.name && (
-                    <Text style={styles.errorText}>{errors.name}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.name}</Text>
                   )}
 
-                  <Text style={[styles.label, { marginTop: 20 }]}>
+                  <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>
                     Number of Beds *
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
+                      {
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.border,
+                        color: theme.colors.text
+                      },
                       touched.bedsCount &&
-                        errors.bedsCount &&
-                        styles.inputError,
+                      errors.bedsCount &&
+                      { borderColor: theme.colors.error },
                     ]}
                     placeholder="Enter number of beds"
+                    placeholderTextColor={theme.colors.textSecondary}
                     value={values.bedsCount}
                     onChangeText={handleChange("bedsCount")}
                     onBlur={handleBlur("bedsCount")}
                     keyboardType="number-pad"
                   />
                   {touched.bedsCount && errors.bedsCount && (
-                    <Text style={styles.errorText}>{errors.bedsCount}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.bedsCount}</Text>
                   )}
 
-                  <Text style={[styles.label, { marginTop: 20 }]}>
+                  <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>
                     Price Per Bed *
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
+                      {
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.border,
+                        color: theme.colors.text
+                      },
                       touched.pricePerBed &&
-                        errors.pricePerBed &&
-                        styles.inputError,
+                      errors.pricePerBed &&
+                      { borderColor: theme.colors.error },
                     ]}
                     placeholder="Enter price per bed"
+                    placeholderTextColor={theme.colors.textSecondary}
                     value={values.pricePerBed}
                     onChangeText={handleChange("pricePerBed")}
                     onBlur={handleBlur("pricePerBed")}
                     keyboardType="number-pad"
                   />
                   {touched.pricePerBed && errors.pricePerBed && (
-                    <Text style={styles.errorText}>{errors.pricePerBed}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.pricePerBed}</Text>
                   )}
 
                   <TouchableOpacity
                     style={[
                       styles.submitButton,
+                      { backgroundColor: theme.colors.primary },
                       (!isValid || isCreating || isUpdating) &&
-                        styles.submitButtonDisabled,
+                      styles.submitButtonDisabled,
                     ]}
                     onPress={handleSubmit}
                     disabled={!isValid || isCreating || isUpdating}
                   >
                     {isCreating || isUpdating ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color={theme.colors.textInverse} />
                     ) : (
-                      <Text style={styles.submitButtonText}>
+                      <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>
                         {editingRoomType
                           ? "Update Room Type"
                           : "Create Room Type"}
@@ -305,7 +326,7 @@ export default function RoomTypesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
@@ -314,15 +335,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
   },
-  title: { fontSize: 28, fontWeight: "bold" },
+  // title: { fontSize: 28, fontWeight: "bold" },
   addButton: {
-    backgroundColor: "#007AFF",
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -333,11 +352,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "white",
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -356,17 +373,15 @@ const styles = StyleSheet.create({
   roomTypeName: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 4,
   },
-  roomTypeMeta: { fontSize: 14, color: "#666", marginBottom: 2 },
-  roomCount: { fontSize: 12, color: "#999" },
+  roomTypeMeta: { fontSize: 14, marginBottom: 2 },
+  roomCount: { fontSize: 12 },
   actions: { flexDirection: "row", gap: 8 },
   actionButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F5F5F5",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -376,15 +391,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 100,
   },
-  emptyText: { fontSize: 20, fontWeight: "600", color: "#999", marginTop: 16 },
-  emptySubtext: { fontSize: 14, color: "#BBB", marginTop: 8 },
+  emptyText: { fontSize: 20, fontWeight: "600", marginTop: 16 },
+  emptySubtext: { fontSize: 14, marginTop: 8 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -396,9 +410,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  modalTitle: { fontSize: 22, fontWeight: "bold", color: "#333" },
+  modalTitle: { fontSize: 22, fontWeight: "bold" },
   form: { marginTop: 10 },
-  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 12 },
+  label: { fontSize: 16, fontWeight: "600", marginBottom: 12 },
   roomTypeSelector: { gap: 12 },
   roomTypeOption: {
     flexDirection: "row",
@@ -406,36 +420,29 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#E5E5E5",
-    backgroundColor: "#F9F9F9",
     gap: 12,
   },
   roomTypeOptionSelected: {
-    backgroundColor: "#F0F8FF",
     borderWidth: 2,
   },
   roomTypeOptionText: {
     fontSize: 16,
-    color: "#666",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#DDD",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#F9F9F9",
   },
-  inputError: { borderColor: "#FF3B30" },
-  errorText: { color: "#FF3B30", fontSize: 12, marginTop: 4 },
+  inputError: { borderWidth: 1 },
+  errorText: { fontSize: 12, marginTop: 4 },
   submitButton: {
-    backgroundColor: "#007AFF",
     padding: 16,
     borderRadius: 8,
-    alignItems: "center",
+    alignItems: 'center',
     marginTop: 20,
     marginBottom: 20,
   },
-  submitButtonDisabled: { backgroundColor: "#A0A0A0", opacity: 0.6 },
-  submitButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { fontSize: 16, fontWeight: "600" },
 });

@@ -1,26 +1,33 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AdminDashboardScreen from '../screens/adminScreens/AdminDashboardScreen';
 import AdminServicesScreen from '../screens/adminScreens/AdminServicesScreen';
 import AdminSettingsScreen from '../screens/adminScreens/AdminSettingsScreen';
 import { SCREEN_NAMES } from '../constants/screens';
+import { useTheme } from '../context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 
 export default function AdminTabNavigator() {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textTertiary,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: theme.colors.tabBarBackground,
           borderTopWidth: 1,
-          borderTopColor: '#E5E5EA',
-          height: 60,
-          paddingBottom: 8,
+          borderTopColor: theme.colors.tabBarBorder,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
           paddingTop: 8,
+          ...theme.shadows.sm,
         },
         tabBarLabelStyle: {
           fontSize: 12,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useTheme } from '../context/ThemeContext';
 import AdminTabNavigator from './AdminTabNavigator';
 import FloorsScreen from '../screens/adminScreens/services/FloorsScreen';
 import RoomTypesScreen from '../screens/adminScreens/services/RoomTypesScreen';
@@ -11,35 +12,48 @@ import { SCREEN_NAMES } from '../constants/screens';
 const Stack = createNativeStackNavigator();
 
 export default function AdminRouter() {
+  const { theme } = useTheme();
+
   return (
-    <Stack.Navigator>
-      <Stack.Screen 
-        name="AdminTabs" 
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.background,
+        },
+        headerTintColor: theme.colors.text,
+        headerTitleStyle: {
+          color: theme.colors.text,
+        },
+        headerShadowVisible: false, // Optional: remove shadow for cleaner look
+      }}
+    >
+      <Stack.Screen
+        name="AdminTabs"
         component={AdminTabNavigator}
         options={{ headerShown: false }}
       />
-      <Stack.Screen 
-        name={SCREEN_NAMES.FLOORS} 
+      <Stack.Screen
+        name={SCREEN_NAMES.FLOORS}
         component={FloorsScreen}
         options={{ title: 'Floors' }}
       />
-      <Stack.Screen 
-        name={SCREEN_NAMES.ROOM_TYPES} 
+      <Stack.Screen
+        name={SCREEN_NAMES.ROOM_TYPES}
         component={RoomTypesScreen}
         options={{ title: 'Room Types' }}
       />
-      <Stack.Screen 
-        name={SCREEN_NAMES.ROOMS} 
+      <Stack.Screen
+        name={SCREEN_NAMES.ROOMS}
         component={RoomsScreen}
         options={{ title: 'Rooms' }}
       />
-      <Stack.Screen 
-        name={SCREEN_NAMES.BEDS} 
+      <Stack.Screen
+        name={SCREEN_NAMES.BEDS}
         component={BedsScreen}
         options={{ title: 'Beds' }}
       />
-      <Stack.Screen 
-        name={SCREEN_NAMES.BOOKINGS} 
+      <Stack.Screen
+        name={SCREEN_NAMES.BOOKINGS}
         component={BookingsScreen}
         options={{ title: 'Bookings' }}
       />

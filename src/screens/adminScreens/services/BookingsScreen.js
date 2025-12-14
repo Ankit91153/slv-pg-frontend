@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Formik } from "formik";
+import { useTheme } from "../../../context/ThemeContext";
 import {
   useBookings,
   useCreateBooking,
@@ -24,14 +25,13 @@ import { useBeds } from "../../../hooks/useBeds";
 import { bookingSchema } from "../../../validations/bookingSchema";
 
 export default function BookingsScreen() {
+  const { theme } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
   const [selectedRoomType, setSelectedRoomType] = useState("");
 
   const { data: bookings, isLoading, refetch } = useBookings();
 
-  console.log(bookings,"BOOOOOOOO");
-  
   const { data: usersResponse } = useTenantUsers();
   const users = usersResponse?.data || [];
 
@@ -112,29 +112,29 @@ export default function BookingsScreen() {
     const isActive = item.status === "ACTIVE";
 
     return (
-      <View style={styles.bookingCard}>
+      <View style={[styles.bookingCard, { backgroundColor: theme.colors.card, shadowColor: theme.colors.shadow }]}>
         <View style={styles.bookingInfo}>
           <View
             style={[
               styles.statusIndicator,
-              { backgroundColor: isActive ? "#34C759" : "#999" },
+              { backgroundColor: isActive ? theme.colors.success : theme.colors.textSecondary },
             ]}
           />
           <View style={styles.bookingDetails}>
-            <Text style={styles.userName}>{item.user?.name}</Text>
-            <Text style={styles.bookingMeta}>
+            <Text style={[styles.userName, { color: theme.colors.text }]}>{item.user?.name}</Text>
+            <Text style={[styles.bookingMeta, { color: theme.colors.textSecondary }]}>
               Room {item.bed?.room?.roomNumber} • Bed {item.bed?.bedNumber}
             </Text>
-            <Text style={styles.bookingMeta}>
+            <Text style={[styles.bookingMeta, { color: theme.colors.textSecondary }]}>
               Floor {item.bed?.room?.floor?.floorNumber} •{" "}
               {item.bed?.room?.roomType?.name}
             </Text>
             <View style={styles.dateContainer}>
-              <Text style={styles.dateText}>
+              <Text style={[styles.dateText, { color: theme.colors.textSecondary }]}>
                 Start: {new Date(item.startDate).toLocaleDateString()}
               </Text>
               {item.endDate && (
-                <Text style={styles.dateText}>
+                <Text style={[styles.dateText, { color: theme.colors.textSecondary }]}>
                   End: {new Date(item.endDate).toLocaleDateString()}
                 </Text>
               )}
@@ -142,13 +142,13 @@ export default function BookingsScreen() {
             <View
               style={[
                 styles.statusBadge,
-                { backgroundColor: isActive ? "#34C75920" : "#99999920" },
+                { backgroundColor: isActive ? theme.colors.success + '20' : theme.colors.textSecondary + '20' },
               ]}
             >
               <Text
                 style={[
                   styles.statusText,
-                  { color: isActive ? "#34C759" : "#999" },
+                  { color: isActive ? theme.colors.success : theme.colors.textSecondary },
                 ]}
               >
                 {item.status}
@@ -159,17 +159,17 @@ export default function BookingsScreen() {
         <View style={styles.actions}>
           {isActive && (
             <TouchableOpacity
-              style={styles.actionButton}
+              style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
               onPress={() => handleStatusUpdate(item, "COMPLETED")}
             >
-              <Ionicons name="checkmark-done" size={20} color="#34C759" />
+              <Ionicons name="checkmark-done" size={20} color={theme.colors.success} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.colors.background }]}
             onPress={() => handleDelete(item)}
           >
-            <Ionicons name="trash-outline" size={20} color="#FF3B30" />
+            <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
           </TouchableOpacity>
         </View>
       </View>
@@ -178,26 +178,28 @@ export default function BookingsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Bookings</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
-          <Ionicons name="add" size={24} color="white" />
+        {/* Title handled by nav */}
+        {/* <Text style={[styles.title, { color: theme.colors.text }]}>Bookings</Text> */}
+        <View />
+        <TouchableOpacity style={[styles.addButton, { backgroundColor: theme.colors.primary }]} onPress={handleAddNew}>
+          <Ionicons name="add" size={24} color={theme.colors.textInverse} />
         </TouchableOpacity>
       </View>
 
       {bookings?.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="calendar-outline" size={64} color="#CCC" />
-          <Text style={styles.emptyText}>No bookings yet</Text>
-          <Text style={styles.emptySubtext}>
+          <Ionicons name="calendar-outline" size={64} color={theme.colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>No bookings yet</Text>
+          <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
             Tap + to create your first booking
           </Text>
         </View>
@@ -222,16 +224,16 @@ export default function BookingsScreen() {
         }}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.card }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create New Booking</Text>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Create New Booking</Text>
               <TouchableOpacity
                 onPress={() => {
                   setModalVisible(false);
                   setEditingBooking(null);
                 }}
               >
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
 
@@ -256,15 +258,15 @@ export default function BookingsScreen() {
                 setFieldValue,
               }) => (
                 <ScrollView style={styles.form}>
-                  <Text style={styles.label}>Select User *</Text>
+                  <Text style={[styles.label, { color: theme.colors.text }]}>Select User *</Text>
                   {users.length === 0 ? (
-                    <View style={styles.noDataContainer}>
+                    <View style={[styles.noDataContainer, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}>
                       <Ionicons
                         name="people-outline"
                         size={24}
-                        color="#FF9500"
+                        color={theme.colors.warning}
                       />
-                      <Text style={styles.noDataText}>
+                      <Text style={[styles.noDataText, { color: theme.colors.textSecondary }]}>
                         No tenant users available
                       </Text>
                     </View>
@@ -279,8 +281,12 @@ export default function BookingsScreen() {
                             key={user.id}
                             style={[
                               styles.dropdownOption,
-                              values.userId === user.id &&
-                                styles.dropdownOptionSelected,
+                              { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                              values.userId === user.id && {
+                                borderColor: theme.colors.primary,
+                                backgroundColor: theme.colors.primary + '10',
+                                borderWidth: 2,
+                              },
                             ]}
                             onPress={() => setFieldValue("userId", user.id)}
                           >
@@ -288,20 +294,23 @@ export default function BookingsScreen() {
                               name="person"
                               size={20}
                               color={
-                                values.userId === user.id ? "#007AFF" : "#999"
+                                values.userId === user.id ? theme.colors.primary : theme.colors.textSecondary
                               }
                             />
                             <View style={{ flex: 1 }}>
                               <Text
                                 style={[
                                   styles.dropdownOptionText,
-                                  values.userId === user.id &&
-                                    styles.dropdownOptionTextSelected,
+                                  { color: theme.colors.textSecondary },
+                                  values.userId === user.id && {
+                                    color: theme.colors.primary,
+                                    fontWeight: '600',
+                                  },
                                 ]}
                               >
                                 {user.name}
                               </Text>
-                              <Text style={styles.dropdownSubtext}>
+                              <Text style={[styles.dropdownSubtext, { color: theme.colors.textSecondary }]}>
                                 {user.email}
                               </Text>
                             </View>
@@ -309,7 +318,7 @@ export default function BookingsScreen() {
                               <Ionicons
                                 name="checkmark-circle"
                                 size={20}
-                                color="#007AFF"
+                                color={theme.colors.primary}
                               />
                             )}
                           </TouchableOpacity>
@@ -318,17 +327,21 @@ export default function BookingsScreen() {
                     </ScrollView>
                   )}
                   {touched.userId && errors.userId && (
-                    <Text style={styles.errorText}>{errors.userId}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.userId}</Text>
                   )}
 
-                  <Text style={[styles.label, { marginTop: 20 }]}>
+                  <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>
                     Filter by Room Type (Optional)
                   </Text>
                   <View style={styles.filterContainer}>
                     <TouchableOpacity
                       style={[
                         styles.filterChip,
-                        !selectedRoomType && styles.filterChipSelected,
+                        { borderColor: theme.colors.border, backgroundColor: theme.colors.background },
+                        !selectedRoomType && {
+                          backgroundColor: theme.colors.primary,
+                          borderColor: theme.colors.primary,
+                        },
                       ]}
                       onPress={() => {
                         setSelectedRoomType("");
@@ -338,7 +351,11 @@ export default function BookingsScreen() {
                       <Text
                         style={[
                           styles.filterChipText,
-                          !selectedRoomType && styles.filterChipTextSelected,
+                          { color: theme.colors.textSecondary },
+                          !selectedRoomType && {
+                            color: theme.colors.textInverse,
+                            fontWeight: '600',
+                          },
                         ]}
                       >
                         All
@@ -349,8 +366,11 @@ export default function BookingsScreen() {
                         key={type}
                         style={[
                           styles.filterChip,
-                          selectedRoomType === type &&
-                            styles.filterChipSelected,
+                          { borderColor: theme.colors.border, backgroundColor: theme.colors.background },
+                          selectedRoomType === type && {
+                            backgroundColor: theme.colors.primary,
+                            borderColor: theme.colors.primary,
+                          },
                         ]}
                         onPress={() => {
                           setSelectedRoomType(type);
@@ -360,8 +380,11 @@ export default function BookingsScreen() {
                         <Text
                           style={[
                             styles.filterChipText,
-                            selectedRoomType === type &&
-                              styles.filterChipTextSelected,
+                            { color: theme.colors.textSecondary },
+                            selectedRoomType === type && {
+                              color: theme.colors.textInverse,
+                              fontWeight: '600',
+                            },
                           ]}
                         >
                           {type}
@@ -370,18 +393,18 @@ export default function BookingsScreen() {
                     ))}
                   </View>
 
-                  <Text style={[styles.label, { marginTop: 20 }]}>
+                  <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>
                     Select Available Bed *
                   </Text>
                   {availableBeds.length === 0 ? (
-                    <View style={styles.noBedsContainer}>
+                    <View style={[styles.noBedsContainer, { backgroundColor: theme.colors.warning + "10", borderColor: theme.colors.warning }]}>
                       <Ionicons
                         name="alert-circle-outline"
                         size={32}
-                        color="#FF9500"
+                        color={theme.colors.warning}
                       />
-                      <Text style={styles.noBedsText}>No available beds</Text>
-                      <Text style={styles.noBedsSubtext}>
+                      <Text style={[styles.noBedsText, { color: theme.colors.warning }]}>No available beds</Text>
+                      <Text style={[styles.noBedsSubtext, { color: theme.colors.textSecondary }]}>
                         {selectedRoomType
                           ? `No available ${selectedRoomType} beds at the moment`
                           : "All beds are currently occupied"}
@@ -398,8 +421,12 @@ export default function BookingsScreen() {
                             key={bed.id}
                             style={[
                               styles.dropdownOption,
-                              values.bedId === bed.id &&
-                                styles.dropdownOptionSelected,
+                              { backgroundColor: theme.colors.background, borderColor: theme.colors.border },
+                              values.bedId === bed.id && {
+                                borderColor: theme.colors.success,
+                                backgroundColor: theme.colors.success + '10',
+                                borderWidth: 2,
+                              },
                             ]}
                             onPress={() => setFieldValue("bedId", bed.id)}
                           >
@@ -407,20 +434,23 @@ export default function BookingsScreen() {
                               name="bed"
                               size={20}
                               color={
-                                values.bedId === bed.id ? "#34C759" : "#999"
+                                values.bedId === bed.id ? theme.colors.success : theme.colors.textSecondary
                               }
                             />
                             <View style={{ flex: 1 }}>
                               <Text
                                 style={[
                                   styles.dropdownOptionText,
-                                  values.bedId === bed.id &&
-                                    styles.dropdownOptionTextSelected,
+                                  { color: theme.colors.textSecondary },
+                                  values.bedId === bed.id && {
+                                    color: theme.colors.success,
+                                    fontWeight: '600',
+                                  },
                                 ]}
                               >
                                 Bed {bed.bedNumber} - Room {bed.roomNumber}
                               </Text>
-                              <Text style={styles.dropdownSubtext}>
+                              <Text style={[styles.dropdownSubtext, { color: theme.colors.textSecondary }]}>
                                 Floor {bed.floorNumber} • {bed.roomType} • ₹
                                 {bed.price}
                               </Text>
@@ -429,7 +459,7 @@ export default function BookingsScreen() {
                               <Ionicons
                                 name="checkmark-circle"
                                 size={20}
-                                color="#34C759"
+                                color={theme.colors.success}
                               />
                             )}
                           </TouchableOpacity>
@@ -438,41 +468,48 @@ export default function BookingsScreen() {
                     </ScrollView>
                   )}
                   {touched.bedId && errors.bedId && (
-                    <Text style={styles.errorText}>{errors.bedId}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.bedId}</Text>
                   )}
 
-                  <Text style={[styles.label, { marginTop: 20 }]}>
+                  <Text style={[styles.label, { marginTop: 20, color: theme.colors.text }]}>
                     Start Date *
                   </Text>
                   <TextInput
                     style={[
                       styles.input,
+                      {
+                        backgroundColor: theme.colors.background,
+                        borderColor: theme.colors.border,
+                        color: theme.colors.text
+                      },
                       touched.startDate &&
-                        errors.startDate &&
-                        styles.inputError,
+                      errors.startDate &&
+                      { borderColor: theme.colors.error },
                     ]}
                     placeholder="YYYY-MM-DD"
+                    placeholderTextColor={theme.colors.textSecondary}
                     value={values.startDate}
                     onChangeText={handleChange("startDate")}
                     onBlur={handleBlur("startDate")}
                   />
                   {touched.startDate && errors.startDate && (
-                    <Text style={styles.errorText}>{errors.startDate}</Text>
+                    <Text style={[styles.errorText, { color: theme.colors.error }]}>{errors.startDate}</Text>
                   )}
 
                   <TouchableOpacity
                     style={[
                       styles.submitButton,
+                      { backgroundColor: theme.colors.primary },
                       (!isValid || isCreating || isUpdating) &&
-                        styles.submitButtonDisabled,
+                      styles.submitButtonDisabled,
                     ]}
                     onPress={handleSubmit}
                     disabled={!isValid || isCreating || isUpdating}
                   >
                     {isCreating || isUpdating ? (
-                      <ActivityIndicator color="white" />
+                      <ActivityIndicator color={theme.colors.textInverse} />
                     ) : (
-                      <Text style={styles.submitButtonText}>
+                      <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>
                         Create Booking
                       </Text>
                     )}
@@ -488,7 +525,7 @@ export default function BookingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
     flexDirection: "row",
@@ -497,15 +534,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 10,
   },
-  title: { fontSize: 28, fontWeight: "bold" },
+  // title: { fontSize: 28, fontWeight: "bold" },
   addButton: {
-    backgroundColor: "#007AFF",
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -516,11 +551,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "white",
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -534,10 +567,10 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   bookingDetails: { flex: 1 },
-  userName: { fontSize: 18, fontWeight: "600", color: "#333", marginBottom: 4 },
-  bookingMeta: { fontSize: 14, color: "#666", marginBottom: 2 },
+  userName: { fontSize: 18, fontWeight: "600", marginBottom: 4 },
+  bookingMeta: { fontSize: 14, marginBottom: 2 },
   dateContainer: { marginTop: 8, marginBottom: 8 },
-  dateText: { fontSize: 12, color: "#999", marginBottom: 2 },
+  dateText: { fontSize: 12, marginBottom: 2 },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -550,7 +583,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F5F5F5",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -560,15 +592,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingBottom: 100,
   },
-  emptyText: { fontSize: 20, fontWeight: "600", color: "#999", marginTop: 16 },
-  emptySubtext: { fontSize: 14, color: "#BBB", marginTop: 8 },
+  emptyText: { fontSize: 20, fontWeight: "600", marginTop: 16 },
+  emptySubtext: { fontSize: 14, marginTop: 8 },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -580,9 +611,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  modalTitle: { fontSize: 22, fontWeight: "bold", color: "#333" },
+  modalTitle: { fontSize: 22, fontWeight: "bold" },
   form: { marginTop: 10 },
-  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 12 },
+  label: { fontSize: 16, fontWeight: "600", marginBottom: 12 },
   dropdownScrollContainer: {
     maxHeight: 200,
     marginBottom: 8,
@@ -594,48 +625,38 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
-    backgroundColor: "#F9F9F9",
     gap: 12,
   },
   dropdownOptionSelected: {
-    backgroundColor: "#F0F8FF",
-    borderColor: "#007AFF",
     borderWidth: 2,
   },
   dropdownOptionText: {
     fontSize: 16,
-    color: "#666",
   },
   dropdownOptionTextSelected: {
-    color: "#007AFF",
     fontWeight: "600",
   },
   dropdownSubtext: {
     fontSize: 12,
-    color: "#999",
     marginTop: 2,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#DDD",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: "#F9F9F9",
   },
-  inputError: { borderColor: "#FF3B30" },
-  errorText: { color: "#FF3B30", fontSize: 12, marginTop: 4 },
+  inputError: { borderWidth: 1 },
+  errorText: { fontSize: 12, marginTop: 4 },
   submitButton: {
-    backgroundColor: "#007AFF",
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
     marginTop: 20,
     marginBottom: 20,
   },
-  submitButtonDisabled: { backgroundColor: "#A0A0A0", opacity: 0.6 },
-  submitButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { fontSize: 16, fontWeight: "600" },
   filterContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -647,55 +668,42 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#DDD",
-    backgroundColor: "#F9F9F9",
   },
   filterChipSelected: {
-    backgroundColor: "#007AFF",
-    borderColor: "#007AFF",
   },
   filterChipText: {
     fontSize: 14,
-    color: "#666",
     fontWeight: "500",
   },
   filterChipTextSelected: {
-    color: "white",
     fontWeight: "600",
   },
   noBedsContainer: {
-    backgroundColor: "#FFF8F0",
     padding: 20,
     borderRadius: 12,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#FF9500",
   },
   noBedsText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FF9500",
     marginTop: 12,
   },
   noBedsSubtext: {
     fontSize: 14,
-    color: "#999",
     marginTop: 4,
     textAlign: "center",
   },
   noDataContainer: {
-    backgroundColor: "#F9F9F9",
     padding: 16,
     borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: "#E5E5E5",
   },
   noDataText: {
     fontSize: 14,
-    color: "#999",
     fontWeight: "500",
   },
 });

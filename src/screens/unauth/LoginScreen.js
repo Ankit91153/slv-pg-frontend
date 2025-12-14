@@ -1,12 +1,17 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Formik } from 'formik';
 import { useLogin } from '../../hooks/useAuth';
 import { loginSchema } from '../../validations/loginSchema';
 import { SCREEN_NAMES } from '../../constants/screens';
+import { useTheme } from '../../context/ThemeContext';
+import { createLoginStyles } from '../../styles/screens/loginStyles';
 
 export default function LoginScreen({ navigation }) {
   const { mutate: login, isPending } = useLogin();
+  const { theme } = useTheme();
+  const styles = createLoginStyles(theme);
 
   const handleLogin = (values) => {
     login(values, {
@@ -22,9 +27,9 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Text style={styles.title}>Login</Text>
-      
+
       <Formik
         initialValues={{
           email: '',
@@ -40,6 +45,7 @@ export default function LoginScreen({ navigation }) {
             <TextInput
               style={[styles.input, errors.email && values.email && styles.inputError]}
               placeholder="Email"
+              placeholderTextColor={theme.colors.inputPlaceholder}
               value={values.email}
               onChangeText={(text) => {
                 handleChange('email')(text);
@@ -48,6 +54,7 @@ export default function LoginScreen({ navigation }) {
               onBlur={handleBlur('email')}
               autoCapitalize="none"
               keyboardType="email-address"
+              keyboardAppearance={theme.isDark ? 'dark' : 'light'}
             />
             {errors.email && values.email ? (
               <Text style={styles.errorText}>{errors.email}</Text>
@@ -56,6 +63,7 @@ export default function LoginScreen({ navigation }) {
             <TextInput
               style={[styles.input, errors.password && values.password && styles.inputError]}
               placeholder="Password"
+              placeholderTextColor={theme.colors.inputPlaceholder}
               value={values.password}
               onChangeText={(text) => {
                 handleChange('password')(text);
@@ -63,6 +71,7 @@ export default function LoginScreen({ navigation }) {
               }}
               onBlur={handleBlur('password')}
               secureTextEntry
+              keyboardAppearance={theme.isDark ? 'dark' : 'light'}
             />
             {errors.password && values.password ? (
               <Text style={styles.errorText}>{errors.password}</Text>
@@ -72,9 +81,10 @@ export default function LoginScreen({ navigation }) {
               style={[styles.button, (!isValid || isPending) && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={!isValid || isPending}
+              activeOpacity={0.7}
             >
               {isPending ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color={theme.colors.textInverse} />
               ) : (
                 <Text style={styles.buttonText}>Login</Text>
               )}
@@ -86,45 +96,10 @@ export default function LoginScreen({ navigation }) {
       <TouchableOpacity onPress={() => navigation.navigate(SCREEN_NAMES.REGISTER)}>
         <Text style={styles.link}>Don't have an account? Register</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity onPress={() => navigation.navigate(SCREEN_NAMES.OTP)}>
         <Text style={styles.link}>Enter OTP</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  form: { width: '100%' },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#ddd', 
-    padding: 12, 
-    marginBottom: 8, 
-    borderRadius: 8,
-    backgroundColor: '#fff',
-  },
-  inputError: {
-    borderColor: '#FF3B30',
-  },
-  errorText: {
-    color: '#FF3B30',
-    fontSize: 12,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  button: { 
-    backgroundColor: '#007AFF', 
-    padding: 15, 
-    borderRadius: 8, 
-    marginTop: 10,
-  },
-  buttonDisabled: {
-    backgroundColor: '#A0A0A0',
-    opacity: 0.6,
-  },
-  buttonText: { color: 'white', textAlign: 'center', fontWeight: 'bold' },
-  link: { color: '#007AFF', textAlign: 'center', marginTop: 15 },
-});
