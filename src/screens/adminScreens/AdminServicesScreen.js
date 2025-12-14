@@ -9,6 +9,7 @@ export default function AdminServicesScreen({ navigation }) {
     { name: 'Room Types', icon: 'grid-outline', screen: SCREEN_NAMES.ROOM_TYPES, color: '#34C759' },
     { name: 'Rooms', icon: 'bed-outline', screen: SCREEN_NAMES.ROOMS, color: '#FF9500' },
     { name: 'Beds', icon: 'business-outline', screen: SCREEN_NAMES.BEDS, color: '#5856D6' },
+    { name: 'Bookings', icon: 'calendar-outline', screen: SCREEN_NAMES.BOOKINGS, color: '#FF3B30' },
   ];
 
   return (

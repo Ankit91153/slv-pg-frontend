@@ -24,6 +24,7 @@ export const SCREEN_NAMES = {
   ROOM_TYPES: "RoomTypes",
   ROOMS: "Rooms",
   BEDS: "Beds",
+  BOOKINGS: "Bookings",
 };
 
 export const USER_ROLES = {

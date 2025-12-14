@@ -19,47 +19,22 @@ import {
   useUpdateRoomType,
   useDeleteRoomType,
 } from "../../../hooks/useRoomTypes";
-import {
-  roomTypeSchema,
-  ROOM_TYPE_NAMES,
-} from "../../../validations/roomTypeSchema";
-
-const ROOM_TYPE_OPTIONS = [
-  {
-    label: "Single (1 Bed)",
-    value: "SINGLE",
-    beds: 1,
-    icon: "person",
-    color: "#007AFF",
-  },
-  {
-    label: "Double (2 Beds)",
-    value: "DOUBLE",
-    beds: 2,
-    icon: "people",
-    color: "#34C759",
-  },
-  {
-    label: "Triple (3 Beds)",
-    value: "TRIPLE",
-    beds: 3,
-    icon: "people-circle",
-    color: "#FF9500",
-  },
-];
+import { roomTypeSchema } from "../../../validations/roomTypeSchema";
 
 export default function RoomTypesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingRoomType, setEditingRoomType] = useState(null);
 
-  const { data: roomTypes, isLoading, refetch } = useRoomTypes();
+  const { data: roomTypesResponse, isLoading, refetch } = useRoomTypes();
+  // const roomTypes = roomTypesResponse?.data || [];
   const { mutate: createRoomType, isPending: isCreating } = useCreateRoomType();
   const { mutate: updateRoomType, isPending: isUpdating } = useUpdateRoomType();
-  const { mutate: deleteRoomType, isPending: isDeleting } = useDeleteRoomType();
+  const { mutate: deleteRoomType } = useDeleteRoomType();
 
   const handleSubmit = (values, { resetForm }) => {
     const payload = {
       name: values.name,
+      bedsCount: Number(values.bedsCount),
       pricePerBed: Number(values.pricePerBed),
     };
 
@@ -115,17 +90,17 @@ export default function RoomTypesScreen() {
     setModalVisible(true);
   };
 
-  const getRoomTypeConfig = (name) => {
-    return (
-      ROOM_TYPE_OPTIONS.find((opt) => opt.value === name) ||
-      ROOM_TYPE_OPTIONS[0]
-    );
+  const getIconForBedCount = (bedsCount) => {
+    if (bedsCount === 1) return { icon: 'person', color: '#007AFF' };
+    if (bedsCount === 2) return { icon: 'people', color: '#34C759' };
+    if (bedsCount === 3) return { icon: 'people-circle', color: '#FF9500' };
+    return { icon: 'bed', color: '#5856D6' };
   };
 
-  console.log(roomTypes, "roomTypesroomTypesroomTypes");
-
+  console.log(roomTypesResponse,"roomTypesResponseroomTypesResponse");
+  
   const renderRoomTypeCard = ({ item }) => {
-    const config = getRoomTypeConfig(item.name);
+    const config = getIconForBedCount(item.bedsCount);
 
     return (
       <View style={styles.roomTypeCard}>
@@ -181,7 +156,7 @@ export default function RoomTypesScreen() {
         </TouchableOpacity>
       </View>
 
-      {roomTypes?.length === 0 ? (
+      {roomTypesResponse?.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="grid-outline" size={64} color="#CCC" />
           <Text style={styles.emptyText}>No room types yet</Text>
@@ -191,7 +166,7 @@ export default function RoomTypesScreen() {
         </View>
       ) : (
         <FlatList
-          data={roomTypes}
+          data={roomTypesResponse}
           renderItem={renderRoomTypeCard}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
@@ -228,6 +203,7 @@ export default function RoomTypesScreen() {
             <Formik
               initialValues={{
                 name: editingRoomType?.name || "",
+                bedsCount: editingRoomType?.bedsCount?.toString() || "",
                 pricePerBed: editingRoomType?.pricePerBed?.toString() || "",
               }}
               validationSchema={roomTypeSchema}
@@ -242,45 +218,41 @@ export default function RoomTypesScreen() {
                 errors,
                 touched,
                 isValid,
-                setFieldValue,
               }) => (
                 <ScrollView style={styles.form}>
-                  <Text style={styles.label}>Room Type *</Text>
-                  <View style={styles.roomTypeSelector}>
-                    {ROOM_TYPE_OPTIONS.map((option) => (
-                      <TouchableOpacity
-                        key={option.value}
-                        style={[
-                          styles.roomTypeOption,
-                          values.name === option.value &&
-                            styles.roomTypeOptionSelected,
-                          { borderColor: option.color },
-                        ]}
-                        onPress={() => setFieldValue("name", option.value)}
-                      >
-                        <Ionicons
-                          name={option.icon}
-                          size={24}
-                          color={
-                            values.name === option.value ? option.color : "#999"
-                          }
-                        />
-                        <Text
-                          style={[
-                            styles.roomTypeOptionText,
-                            values.name === option.value && {
-                              color: option.color,
-                              fontWeight: "600",
-                            },
-                          ]}
-                        >
-                          {option.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                  <Text style={styles.label}>Room Type Name *</Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      touched.name && errors.name && styles.inputError,
+                    ]}
+                    placeholder="Enter room type name (e.g., Single, Deluxe, Suite)"
+                    value={values.name}
+                    onChangeText={handleChange("name")}
+                    onBlur={handleBlur("name")}
+                  />
                   {touched.name && errors.name && (
                     <Text style={styles.errorText}>{errors.name}</Text>
+                  )}
+
+                  <Text style={[styles.label, { marginTop: 20 }]}>
+                    Number of Beds *
+                  </Text>
+                  <TextInput
+                    style={[
+                      styles.input,
+                      touched.bedsCount &&
+                        errors.bedsCount &&
+                        styles.inputError,
+                    ]}
+                    placeholder="Enter number of beds"
+                    value={values.bedsCount}
+                    onChangeText={handleChange("bedsCount")}
+                    onBlur={handleBlur("bedsCount")}
+                    keyboardType="number-pad"
+                  />
+                  {touched.bedsCount && errors.bedsCount && (
+                    <Text style={styles.errorText}>{errors.bedsCount}</Text>
                   )}
 
                   <Text style={[styles.label, { marginTop: 20 }]}>

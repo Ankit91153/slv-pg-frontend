@@ -7,6 +7,12 @@ export const roomService = {
     return response.data.data;
   },
 
+  // Get available rooms (rooms with bed capacity)
+  getAvailableRooms: async () => {
+    const response = await axiosInstance.get("/pg-room/available");
+    return response.data;
+  },
+
   // Get single room by ID
   getRoomById: async (id) => {
     const response = await axiosInstance.get(`/pg-room/${id}`);

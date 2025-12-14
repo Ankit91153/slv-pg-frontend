@@ -8,6 +8,13 @@ export const useRooms = () => {
   });
 };
 
+export const useAvailableRooms = () => {
+  return useQuery({
+    queryKey: ['availableRooms'],
+    queryFn: roomService.getAvailableRooms,
+  });
+};
+
 export const useRoom = (id) => {
   return useQuery({
     queryKey: ['room', id],

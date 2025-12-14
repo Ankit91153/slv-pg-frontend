@@ -5,6 +5,7 @@ import FloorsScreen from '../screens/adminScreens/services/FloorsScreen';
 import RoomTypesScreen from '../screens/adminScreens/services/RoomTypesScreen';
 import RoomsScreen from '../screens/adminScreens/services/RoomsScreen';
 import BedsScreen from '../screens/adminScreens/services/BedsScreen';
+import BookingsScreen from '../screens/adminScreens/services/BookingsScreen';
 import { SCREEN_NAMES } from '../constants/screens';
 
 const Stack = createNativeStackNavigator();
@@ -36,6 +37,11 @@ export default function AdminRouter() {
         name={SCREEN_NAMES.BEDS} 
         component={BedsScreen}
         options={{ title: 'Beds' }}
+      />
+      <Stack.Screen 
+        name={SCREEN_NAMES.BOOKINGS} 
+        component={BookingsScreen}
+        options={{ title: 'Bookings' }}
       />
     </Stack.Navigator>
   );

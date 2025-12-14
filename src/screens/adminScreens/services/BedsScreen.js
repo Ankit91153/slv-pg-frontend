@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,23 +11,49 @@ import {
   Alert,
   ScrollView,
   Switch,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Formik } from 'formik';
-import { useBeds, useCreateBed, useUpdateBed, useDeleteBed } from '../../../hooks/useBeds';
-import { useRooms } from '../../../hooks/useRooms';
-import { bedSchema } from '../../../validations/bedSchema';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Formik } from "formik";
+import {
+  useBeds,
+  useCreateBed,
+  useUpdateBed,
+  useDeleteBed,
+} from "../../../hooks/useBeds";
+import { useAvailableRooms } from "../../../hooks/useRooms";
+import { useFloors } from "../../../hooks/useFloors";
+import { useRoomTypes } from "../../../hooks/useRoomTypes";
+import { bedSchema } from "../../../validations/bedSchema";
 
 export default function BedsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBed, setEditingBed] = useState(null);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filters, setFilters] = useState({});
 
-  const { data: bedsResponse, isLoading, refetch } = useBeds();
+  const { data: bedsResponse, isLoading, refetch } = useBeds(filters);
   const beds = bedsResponse?.data || [];
-  const { data: rooms } = useRooms();
+  const { data: availableRoomsResponse } = useAvailableRooms();
+  const availableRooms = availableRoomsResponse?.data || [];
+  const { data: floorsResponse } = useFloors();
+  const floors = floorsResponse || [];
+  const { data: roomTypesResponse } = useRoomTypes();
   const { mutate: createBed, isPending: isCreating } = useCreateBed();
   const { mutate: updateBed, isPending: isUpdating } = useUpdateBed();
   const { mutate: deleteBed } = useDeleteBed();
+
+  const applyFilters = (floorNumber, roomType) => {
+    const newFilters = {};
+    if (floorNumber) newFilters.floorNumber = floorNumber;
+    if (roomType) newFilters.roomType = roomType;
+    setFilters(newFilters);
+    setFilterModalVisible(false);
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    setFilterModalVisible(false);
+  };
 
   const handleSubmit = (values, { resetForm }) => {
     const payload = {
@@ -45,7 +71,7 @@ export default function BedsScreen() {
             setEditingBed(null);
             resetForm();
           },
-          onError: () => console.log('Update failed'),
+          onError: () => console.log("Update failed"),
         }
       );
     } else {
@@ -54,7 +80,7 @@ export default function BedsScreen() {
           setModalVisible(false);
           resetForm();
         },
-        onError: () => console.log('Create failed'),
+        onError: () => console.log("Create failed"),
       });
     }
   };
@@ -66,16 +92,16 @@ export default function BedsScreen() {
 
   const handleDelete = (bed) => {
     Alert.alert(
-      'Delete Bed',
+      "Delete Bed",
       `Are you sure you want to delete Bed ${bed.bedNumber}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: "Cancel", style: "cancel" },
         {
-          text: 'Delete',
-          style: 'destructive',
+          text: "Delete",
+          style: "destructive",
           onPress: () => {
             deleteBed(bed.id, {
-              onError: () => console.log('Delete failed'),
+              onError: () => console.log("Delete failed"),
             });
           },
         },
@@ -84,6 +110,16 @@ export default function BedsScreen() {
   };
 
   const handleAddNew = () => {
+    // Check if there are available rooms before opening modal
+    if (availableRooms.length === 0) {
+      Alert.alert(
+        "No Available Rooms",
+        "All rooms are at full capacity. Please add more rooms first or increase room capacity.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     setEditingBed(null);
     setModalVisible(true);
   };
@@ -92,7 +128,7 @@ export default function BedsScreen() {
     updateBed(
       { id: bed.id, data: { isOccupied: !bed.isOccupied } },
       {
-        onError: () => console.log('Toggle failed'),
+        onError: () => console.log("Toggle failed"),
       }
     );
   };
@@ -100,31 +136,40 @@ export default function BedsScreen() {
   const renderBedCard = ({ item }) => (
     <View style={styles.bedCard}>
       <View style={styles.bedInfo}>
-        <View style={[
-          styles.bedIconContainer,
-          { backgroundColor: item.isOccupied ? '#FF3B3020' : '#5856D620' }
-        ]}>
-          <Ionicons 
-            name={item.isOccupied ? "bed" : "bed-outline"} 
-            size={24} 
-            color={item.isOccupied ? '#FF3B30' : '#5856D6'} 
+        <View
+          style={[
+            styles.bedIconContainer,
+            { backgroundColor: item.isOccupied ? "#FF3B3020" : "#5856D620" },
+          ]}
+        >
+          <Ionicons
+            name={item.isOccupied ? "bed" : "bed-outline"}
+            size={24}
+            color={item.isOccupied ? "#FF3B30" : "#5856D6"}
           />
         </View>
         <View style={styles.bedDetails}>
           <Text style={styles.bedNumber}>Bed {item.bedNumber}</Text>
           <Text style={styles.bedMeta}>
-            Room {item.room?.roomNumber} • Floor {item.room?.floor?.floorNumber}
+            Room {item.roomNumber} • Floor {item.floorNumber}
           </Text>
+          <Text style={styles.roomTypeText}>{item.roomType}</Text>
           <View style={styles.statusContainer}>
-            <View style={[
-              styles.statusBadge,
-              { backgroundColor: item.isOccupied ? '#FF3B3020' : '#34C75920' }
-            ]}>
-              <Text style={[
-                styles.statusText,
-                { color: item.isOccupied ? '#FF3B30' : '#34C759' }
-              ]}>
-                {item.isOccupied ? 'Occupied' : 'Available'}
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: item.isOccupied ? "#FF3B3020" : "#34C75920",
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusText,
+                  { color: item.isOccupied ? "#FF3B30" : "#34C759" },
+                ]}
+              >
+                {item.isOccupied ? "Occupied" : "Available"}
               </Text>
             </View>
             <Text style={styles.priceText}>₹{item.price}</Text>
@@ -136,10 +181,12 @@ export default function BedsScreen() {
           style={styles.actionButton}
           onPress={() => toggleOccupied(item)}
         >
-          <Ionicons 
-            name={item.isOccupied ? "checkmark-circle" : "checkmark-circle-outline"} 
-            size={20} 
-            color={item.isOccupied ? '#FF3B30' : '#34C759'} 
+          <Ionicons
+            name={
+              item.isOccupied ? "checkmark-circle" : "checkmark-circle-outline"
+            }
+            size={20}
+            color={item.isOccupied ? "#FF3B30" : "#34C759"}
           />
         </TouchableOpacity>
         <TouchableOpacity
@@ -170,9 +217,31 @@ export default function BedsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Beds</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
-          <Ionicons name="add" size={24} color="white" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              Object.keys(filters).length > 0 && styles.filterButtonActive,
+            ]}
+            onPress={() => setFilterModalVisible(true)}
+          >
+            <Ionicons
+              name="filter"
+              size={20}
+              color={Object.keys(filters).length > 0 ? "white" : "#007AFF"}
+            />
+            {Object.keys(filters).length > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>
+                  {Object.keys(filters).length}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddNew}>
+            <Ionicons name="add" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {beds?.length === 0 ? (
@@ -205,7 +274,7 @@ export default function BedsScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingBed ? 'Edit Bed' : 'Add New Bed'}
+                {editingBed ? "Edit Bed" : "Add New Bed"}
               </Text>
               <TouchableOpacity
                 onPress={() => {
@@ -219,8 +288,8 @@ export default function BedsScreen() {
 
             <Formik
               initialValues={{
-                roomId: editingBed?.roomId || '',
-                bedNumber: editingBed?.bedNumber?.toString() || '',
+                roomId: editingBed?.roomId || "",
+                bedNumber: editingBed?.bedNumber?.toString() || "",
                 isOccupied: editingBed?.isOccupied || false,
               }}
               validationSchema={editingBed ? null : bedSchema}
@@ -240,53 +309,98 @@ export default function BedsScreen() {
                 <ScrollView style={styles.form}>
                   {!editingBed && (
                     <>
-                      <Text style={styles.label}>Room *</Text>
-                      <View style={styles.dropdownContainer}>
-                        {rooms?.map((room) => (
-                          <TouchableOpacity
-                            key={room.id}
-                            style={[
-                              styles.dropdownOption,
-                              values.roomId === room.id && styles.dropdownOptionSelected,
-                            ]}
-                            onPress={() => setFieldValue('roomId', room.id)}
-                          >
-                            <Ionicons 
-                              name="bed" 
-                              size={20} 
-                              color={values.roomId === room.id ? '#FF9500' : '#999'} 
-                            />
-                            <View style={{ flex: 1 }}>
-                              <Text style={[
-                                styles.dropdownOptionText,
-                                values.roomId === room.id && styles.dropdownOptionTextSelected
-                              ]}>
-                                Room {room.roomNumber}
-                              </Text>
-                              <Text style={styles.dropdownSubtext}>
-                                Floor {room.floor?.floorNumber} • {room.roomType?.name} • {room.beds?.length || 0}/{room.roomType?.bedsCount} beds
-                              </Text>
-                            </View>
-                            {values.roomId === room.id && (
-                              <Ionicons name="checkmark-circle" size={20} color="#FF9500" />
-                            )}
-                          </TouchableOpacity>
-                        ))}
-                      </View>
+                      <Text style={styles.label}>
+                        Select Room (Only rooms with available capacity) *
+                      </Text>
+                      {availableRooms.length === 0 ? (
+                        <View style={styles.noRoomsContainer}>
+                          <Ionicons
+                            name="alert-circle-outline"
+                            size={32}
+                            color="#FF9500"
+                          />
+                          <Text style={styles.noRoomsText}>
+                            No rooms with available bed capacity
+                          </Text>
+                          <Text style={styles.noRoomsSubtext}>
+                            All rooms are at full capacity
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={styles.dropdownContainer}>
+                          {availableRooms?.map((room) => (
+                            <TouchableOpacity
+                              key={room.id}
+                              style={[
+                                styles.dropdownOption,
+                                values.roomId === room.id &&
+                                  styles.dropdownOptionSelected,
+                              ]}
+                              onPress={() => setFieldValue("roomId", room.id)}
+                            >
+                              <Ionicons
+                                name="bed"
+                                size={20}
+                                color={
+                                  values.roomId === room.id ? "#34C759" : "#999"
+                                }
+                              />
+                              <View style={{ flex: 1 }}>
+                                <Text
+                                  style={[
+                                    styles.dropdownOptionText,
+                                    values.roomId === room.id &&
+                                      styles.dropdownOptionTextSelected,
+                                  ]}
+                                >
+                                  Room {room.roomNumber}
+                                </Text>
+                                <Text style={styles.dropdownSubtext}>
+                                  Floor {room.floorNumber} • {room.roomTypeName}
+                                </Text>
+                                <View style={styles.capacityBadge}>
+                                  <Ionicons
+                                    name="add-circle"
+                                    size={14}
+                                    color="#34C759"
+                                  />
+                                  <Text style={styles.capacityText}>
+                                    {room.availableBeds}{" "}
+                                    {room.availableBeds === 1 ? "bed" : "beds"}{" "}
+                                    available ({room.currentBeds}/
+                                    {room.totalBeds})
+                                  </Text>
+                                </View>
+                              </View>
+                              {values.roomId === room.id && (
+                                <Ionicons
+                                  name="checkmark-circle"
+                                  size={20}
+                                  color="#34C759"
+                                />
+                              )}
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
                       {touched.roomId && errors.roomId && (
                         <Text style={styles.errorText}>{errors.roomId}</Text>
                       )}
 
-                      <Text style={[styles.label, { marginTop: 20 }]}>Bed Number *</Text>
+                      <Text style={[styles.label, { marginTop: 20 }]}>
+                        Bed Number *
+                      </Text>
                       <TextInput
                         style={[
                           styles.input,
-                          touched.bedNumber && errors.bedNumber && styles.inputError,
+                          touched.bedNumber &&
+                            errors.bedNumber &&
+                            styles.inputError,
                         ]}
                         placeholder="Enter bed number"
                         value={values.bedNumber}
-                        onChangeText={handleChange('bedNumber')}
-                        onBlur={handleBlur('bedNumber')}
+                        onChangeText={handleChange("bedNumber")}
+                        onBlur={handleBlur("bedNumber")}
                         keyboardType="number-pad"
                       />
                       {touched.bedNumber && errors.bedNumber && (
@@ -299,25 +413,33 @@ export default function BedsScreen() {
                     <>
                       <View style={styles.infoCard}>
                         <Text style={styles.infoLabel}>Room:</Text>
-                        <Text style={styles.infoValue}>Room {editingBed.room?.roomNumber}</Text>
+                        <Text style={styles.infoValue}>
+                          Room {editingBed.room?.roomNumber}
+                        </Text>
                       </View>
                       <View style={styles.infoCard}>
                         <Text style={styles.infoLabel}>Bed Number:</Text>
-                        <Text style={styles.infoValue}>Bed {editingBed.bedNumber}</Text>
+                        <Text style={styles.infoValue}>
+                          Bed {editingBed.bedNumber}
+                        </Text>
                       </View>
-                      
+
                       <View style={styles.switchContainer}>
                         <View>
                           <Text style={styles.label}>Occupied Status</Text>
                           <Text style={styles.switchSubtext}>
-                            {values.isOccupied ? 'Bed is occupied' : 'Bed is available'}
+                            {values.isOccupied
+                              ? "Bed is occupied"
+                              : "Bed is available"}
                           </Text>
                         </View>
                         <Switch
                           value={values.isOccupied}
-                          onValueChange={(value) => setFieldValue('isOccupied', value)}
-                          trackColor={{ false: '#E5E5E5', true: '#34C759' }}
-                          thumbColor={values.isOccupied ? '#fff' : '#f4f3f4'}
+                          onValueChange={(value) =>
+                            setFieldValue("isOccupied", value)
+                          }
+                          trackColor={{ false: "#E5E5E5", true: "#34C759" }}
+                          thumbColor={values.isOccupied ? "#fff" : "#f4f3f4"}
                         />
                       </View>
                     </>
@@ -326,16 +448,19 @@ export default function BedsScreen() {
                   <TouchableOpacity
                     style={[
                       styles.submitButton,
-                      ((!isValid && !editingBed) || isCreating || isUpdating) && styles.submitButtonDisabled,
+                      ((!isValid && !editingBed) || isCreating || isUpdating) &&
+                        styles.submitButtonDisabled,
                     ]}
                     onPress={handleSubmit}
-                    disabled={(!isValid && !editingBed) || isCreating || isUpdating}
+                    disabled={
+                      (!isValid && !editingBed) || isCreating || isUpdating
+                    }
                   >
                     {isCreating || isUpdating ? (
                       <ActivityIndicator color="white" />
                     ) : (
                       <Text style={styles.submitButtonText}>
-                        {editingBed ? 'Update Bed' : 'Create Bed'}
+                        {editingBed ? "Update Bed" : "Create Bed"}
                       </Text>
                     )}
                   </TouchableOpacity>
@@ -345,29 +470,152 @@ export default function BedsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Filter Modal */}
+      <Modal
+        visible={filterModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter Beds</Text>
+              <TouchableOpacity onPress={() => setFilterModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.form}>
+              <Text style={styles.label}>Floor Number</Text>
+              <View style={styles.dropdownContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.dropdownOption,
+                    !filters.floorNumber && styles.dropdownOptionSelected,
+                  ]}
+                  onPress={() => applyFilters(null, filters.roomType)}
+                >
+                  <Text style={styles.dropdownOptionText}>All Floors</Text>
+                </TouchableOpacity>
+                {floors?.map((floor) => (
+                  <TouchableOpacity
+                    key={floor.id}
+                    style={[
+                      styles.dropdownOption,
+                      filters.floorNumber === floor.floorNumber.toString() &&
+                        styles.dropdownOptionSelected,
+                    ]}
+                    onPress={() =>
+                      applyFilters(
+                        floor.floorNumber.toString(),
+                        filters.roomType
+                      )
+                    }
+                  >
+                    <Ionicons name="layers" size={20} color="#007AFF" />
+                    <Text style={styles.dropdownOptionText}>
+                      Floor {floor.floorNumber}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.label, { marginTop: 20 }]}>Room Type</Text>
+              <View style={styles.dropdownContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.dropdownOption,
+                    !filters.roomType && styles.dropdownOptionSelected,
+                  ]}
+                  onPress={() => applyFilters(filters.floorNumber, null)}
+                >
+                  <Text style={styles.dropdownOptionText}>All Room Types</Text>
+                </TouchableOpacity>
+                {roomTypesResponse?.map((roomType) => (
+                  <TouchableOpacity
+                    key={roomType.id}
+                    style={[
+                      styles.dropdownOption,
+                      filters.roomType === roomType.name &&
+                        styles.dropdownOptionSelected,
+                    ]}
+                    onPress={() =>
+                      applyFilters(filters.floorNumber, roomType.name)
+                    }
+                  >
+                    <Ionicons name="grid" size={20} color="#34C759" />
+                    <Text style={styles.dropdownOptionText}>
+                      {roomType.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={clearFilters}
+              >
+                <Text style={styles.clearButtonText}>Clear All Filters</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: "#F5F5F5" },
+  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     paddingTop: 10,
   },
-  title: { fontSize: 28, fontWeight: 'bold' },
-  addButton: {
-    backgroundColor: '#007AFF',
+  title: { fontSize: 28, fontWeight: "bold" },
+  headerActions: { flexDirection: "row", gap: 10 },
+  filterButton: {
+    backgroundColor: "white",
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#007AFF",
+  },
+  filterButtonActive: {
+    backgroundColor: "#007AFF",
+  },
+  filterBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#FF3B30",
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  filterBadgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  addButton: {
+    backgroundColor: "#007AFF",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -375,144 +623,194 @@ const styles = StyleSheet.create({
   },
   listContainer: { padding: 20, paddingTop: 0 },
   bedCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: 'white',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "white",
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  bedInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  bedInfo: { flexDirection: "row", alignItems: "center", flex: 1 },
   bedIconContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   bedDetails: { flex: 1 },
-  bedNumber: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 4 },
-  bedMeta: { fontSize: 14, color: '#666', marginBottom: 6 },
-  statusContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bedNumber: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  bedMeta: { fontSize: 14, color: "#666", marginBottom: 4 },
+  roomTypeText: { fontSize: 12, color: "#999", marginBottom: 6 },
+  statusContainer: { flexDirection: "row", alignItems: "center", gap: 8 },
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
-  statusText: { fontSize: 12, fontWeight: '600' },
-  priceText: { fontSize: 12, color: '#999', fontWeight: '600' },
-  actions: { flexDirection: 'row', gap: 8 },
+  statusText: { fontSize: 12, fontWeight: "600" },
+  priceText: { fontSize: 12, color: "#999", fontWeight: "600" },
+  actions: { flexDirection: "row", gap: 8 },
   actionButton: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingBottom: 100,
   },
-  emptyText: { fontSize: 20, fontWeight: '600', color: '#999', marginTop: 16 },
-  emptySubtext: { fontSize: 14, color: '#BBB', marginTop: 8 },
+  emptyText: { fontSize: 20, fontWeight: "600", color: "#999", marginTop: 16 },
+  emptySubtext: { fontSize: 14, color: "#BBB", marginTop: 8 },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
-    maxHeight: '85%',
+    maxHeight: "85%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
+  modalTitle: { fontSize: 22, fontWeight: "bold", color: "#333" },
   form: { marginTop: 10 },
-  label: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 12 },
+  label: { fontSize: 16, fontWeight: "600", color: "#333", marginBottom: 12 },
   dropdownContainer: { gap: 8 },
   dropdownOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E5E5E5',
-    backgroundColor: '#F9F9F9',
+    borderColor: "#E5E5E5",
+    backgroundColor: "#F9F9F9",
     gap: 12,
   },
   dropdownOptionSelected: {
-    backgroundColor: '#FFF8F0',
-    borderColor: '#FF9500',
+    backgroundColor: "#FFF8F0",
+    borderColor: "#FF9500",
     borderWidth: 2,
   },
   dropdownOptionText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   dropdownOptionTextSelected: {
-    color: '#FF9500',
-    fontWeight: '600',
+    color: "#34C759",
+    fontWeight: "600",
   },
   dropdownSubtext: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
     marginTop: 2,
+  },
+  capacityBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 6,
+    backgroundColor: "#34C75915",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+  },
+  capacityText: {
+    fontSize: 11,
+    color: "#34C759",
+    fontWeight: "600",
+  },
+  noRoomsContainer: {
+    backgroundColor: "#FFF8F0",
+    padding: 20,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FF9500",
+  },
+  noRoomsText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FF9500",
+    marginTop: 12,
+  },
+  noRoomsSubtext: {
+    fontSize: 14,
+    color: "#999",
+    marginTop: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#DDD',
+    borderColor: "#DDD",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#F9F9F9',
+    backgroundColor: "#F9F9F9",
   },
-  inputError: { borderColor: '#FF3B30' },
-  errorText: { color: '#FF3B30', fontSize: 12, marginTop: 4 },
+  inputError: { borderColor: "#FF3B30" },
+  errorText: { color: "#FF3B30", fontSize: 12, marginTop: 4 },
   infoCard: {
-    backgroundColor: '#F9F9F9',
+    backgroundColor: "#F9F9F9",
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  infoLabel: { fontSize: 14, color: '#666' },
-  infoValue: { fontSize: 14, fontWeight: '600', color: '#333' },
+  infoLabel: { fontSize: 14, color: "#666" },
+  infoValue: { fontSize: 14, fontWeight: "600", color: "#333" },
   switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#F9F9F9',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F9F9F9",
     padding: 16,
     borderRadius: 8,
     marginTop: 10,
   },
-  switchSubtext: { fontSize: 12, color: '#999', marginTop: 4 },
+  switchSubtext: { fontSize: 12, color: "#999", marginTop: 4 },
   submitButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 20,
     marginBottom: 20,
   },
-  submitButtonDisabled: { backgroundColor: '#A0A0A0', opacity: 0.6 },
-  submitButtonText: { color: 'white', fontSize: 16, fontWeight: '600' },
+  submitButtonDisabled: { backgroundColor: "#A0A0A0", opacity: 0.6 },
+  submitButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
+  clearButton: {
+    backgroundColor: "#FF3B30",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  clearButtonText: { color: "white", fontSize: 16, fontWeight: "600" },
 });

@@ -1,9 +1,13 @@
 import axiosInstance from '../axiosConfig';
 
 export const bedService = {
-  // Get all beds
-  getAllBeds: async () => {
-    const response = await axiosInstance.get('/pg-bed');
+  // Get all beds with optional filters
+  getAllBeds: async (filters = {}) => {
+    const params = new URLSearchParams();
+    if (filters.floorNumber) params.append('floorNumber', filters.floorNumber);
+    if (filters.roomType) params.append('roomType', filters.roomType);
+    
+    const response = await axiosInstance.get(`/pg-bed?${params.toString()}`);
     return response.data;
   },
 
